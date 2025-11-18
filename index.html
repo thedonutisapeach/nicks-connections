@@ -11,6 +11,7 @@
       --tile: #efefef;
       --muted: #6b7280;
       --accent: #111827;
+      --accent-2: #3b82f6;
       --tile-height-desktop: 90px;
       --tile-height-mobile: 72px;
     }
@@ -98,6 +99,7 @@
       padding: 10px;
     }
 
+    /* Selected tile: dark grey, no outline */
     .tile.selected {
       background: #383e42;
       color: #ffffff;
@@ -154,6 +156,7 @@
       box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.06);
     }
 
+    /* Used = disappear (we hide from RIGHT to LEFT in JS) */
     .dot.used {
       visibility: hidden;
     }
@@ -234,18 +237,18 @@
 
     .solved-group-title {
       font-weight: 900;
-      font-size: 19px; /* 1 step bigger than 18px tile words */
+      font-size: 19px; /* 1 step bigger than 18px tile text */
       margin-bottom: 2px;
       text-align: center;
     }
 
     .solved-group-words {
-      font-weight: 400;  /* not bold */
+      font-weight: 700;
       font-size: 17px;
       text-align: center;
     }
 
-    /* Mobile tweaks */
+    /* Mobile tweaks — keep 4×4 grid and synced heights */
     @media (max-width: 700px) {
       body {
         padding: 16px;
@@ -296,7 +299,7 @@
       }
     }
 
-    /* ===== WRONG-ANSWER OVERLAY ===== */
+    /* ===== WRONG-ANSWER OVERLAY (resized to fit phone) ===== */
 
     #wrongOverlay {
       position: fixed;
@@ -320,20 +323,11 @@
       opacity: 0;
       transform: scale(0.1) rotate(0deg);
       transform-origin: center center;
+
+      /* fit on phone but nice and big */
       max-width: 70vw;
       max-height: 70vh;
       object-fit: contain;
-    }
-
-    #wrongHint {
-      position: absolute;
-      bottom: 16px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-      color: #ef4444;
     }
 
     .animate-main {
@@ -356,7 +350,7 @@
       100% { transform: scale(1.2) rotate(-360deg);  opacity: 1; } /* end upright */
     }
 
-    /* ===== SUCCESS OVERLAY ===== */
+    /* ===== SUCCESS OVERLAY (same style, different image) ===== */
 
     #resultOverlay {
       position: fixed;
@@ -393,109 +387,10 @@
       60%  { transform: scale(1.2) rotate(300deg);  opacity: 1; }
       100% { transform: scale(1.2) rotate(360deg);  opacity: 1; } /* end upright */
     }
-
-    /* ===== INTRO SCREEN ===== */
-
-    #introScreen {
-      position: fixed;
-      inset: 0;
-      background: #c6b5ff;  /* purple-ish */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-    }
-
-    .intro-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 14px;
-      color: #111827;
-      padding: 40px 24px;
-    }
-
-    .intro-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 22px;
-      background: #000000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 4px;
-    }
-
-    .intro-icon-inner {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
-      background: linear-gradient(135deg,#f97316,#ec4899);
-    }
-
-    .intro-title {
-      font-size: 28px;
-      font-weight: 900;
-    }
-
-    .intro-subtitle {
-      font-size: 17px;
-      max-width: 290px;
-    }
-
-    .intro-play {
-      margin-top: 8px;
-      background: #000000;
-      color: #ffffff;
-      border-radius: 999px;
-      padding: 12px 42px;
-      border: none;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    .intro-date {
-      margin-top: 12px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .intro-by {
-      font-size: 13px;
-      margin-top: 2px;
-    }
-
-    @media (max-width: 700px) {
-      .intro-title {
-        font-size: 24px;
-      }
-      .intro-subtitle {
-        font-size: 15px;
-        max-width: 260px;
-      }
-    }
   </style>
 </head>
 
 <body>
-  <!-- Intro overlay -->
-  <div id="introScreen">
-    <div class="intro-card">
-      <div class="intro-icon">
-        <div class="intro-icon-inner"></div>
-      </div>
-      <div class="intro-title">Nick's Very Own Wintertime Connections</div>
-      <div class="intro-subtitle">
-        Group words that share a common thread (hopefully it makes sense!)
-      </div>
-      <button id="introPlay" class="intro-play">Play</button>
-      <div id="introDate" class="intro-date"></div>
-      <div class="intro-by">By Soco</div>
-    </div>
-  </div>
-
   <div class="container">
     <header>
       <h1 class="title-main">NICK'S VERY OWN WINTERTIME CONNECTIONS</h1>
@@ -503,6 +398,7 @@
     </header>
 
     <main class="board">
+      <!-- Solved groups will be injected above the grid -->
       <div id="solvedContainer"></div>
 
       <div class="grid" id="grid"></div>
@@ -525,9 +421,7 @@
         </div>
       </div>
 
-      <footer id="footerText">
-        You know what to do &lt;3. Also please don't judge me on my Connections making skills
-      </footer>
+      <footer id="footerText">You know what to do &lt;3. Also please don't judge me on my Connections making skills</footer>
 
       <div class="archive-wrapper">
         <button id="archiveBtn">ARCHIVE</button>
@@ -536,11 +430,10 @@
     </main>
   </div>
 
-  <!-- Wrong-answer overlay -->
+  <!-- Wrong-answer full-screen overlay -->
   <div id="wrongOverlay">
     <img id="wrongMain" src="jazzwrong.png" alt="Wrong" />
     <img id="wrongText" src="textwrongbit.png" alt="Wrong Text" />
-    <div id="wrongHint">click anywhere to continue</div>
   </div>
 
   <!-- Success overlay -->
@@ -549,6 +442,7 @@
   </div>
 
   <script>
+    // ---------- Google Sheets CSV (hardcoded) ----------
     const SHEET_CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZ5r509S3GwGnxyKsz05syDdMFjTDuPAVBxOozcy1UlnUnHlpwuRDm4Np5W6vbFXkP70pYPGxQk2j6/pub?gid=0&single=true&output=csv";
 
@@ -576,10 +470,6 @@
     const archiveBtn    = document.getElementById("archiveBtn");
     const archiveList   = document.getElementById("archiveList");
 
-    const introScreen   = document.getElementById("introScreen");
-    const introPlay     = document.getElementById("introPlay");
-    const introDateEl   = document.getElementById("introDate");
-
     let selected = [];
     let mistakes = 0;
     const MAX_MISTAKES = 4;
@@ -588,19 +478,16 @@
     const params = new URLSearchParams(window.location.search);
     const archiveMode = params.get("archive") === "1";
 
+    // Disable until puzzle loads
     shuffleBtn.disabled  = true;
     deselectBtn.disabled = true;
     submitBtn.disabled   = true;
-
-    function getTodayStr() {
-      return new Date().toISOString().slice(0, 10);
-    }
 
     function getTargetDateStr() {
       if (archiveMode) return null;
       const explicit = params.get("date");
       if (explicit) return explicit;
-      return getTodayStr();
+      return new Date().toISOString().slice(0, 10);
     }
 
     function showTopBanner(msg) {
@@ -608,22 +495,6 @@
       topBanner.style.display = "block";
       topBanner.style.color = "#000000";
     }
-
-    function formatNiceDate(dateStr) {
-      const d = new Date(dateStr);
-      if (!isNaN(d)) {
-        return d.toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric"
-        });
-      }
-      return dateStr;
-    }
-
-    introPlay.addEventListener("click", () => {
-      introScreen.style.display = "none";
-    });
 
     function createTile(text) {
       const el = document.createElement("div");
@@ -675,7 +546,7 @@
       submitBtn.disabled = gameOver || archiveMode || selected.length !== 4;
     }
 
-    // Single-rectangle solved grouping
+    // Single rectangle solved grouping
     function createSolvedGroupBlock(group, tiles) {
       const words = tiles.map((t) => t.textContent);
       tiles.forEach((t) => t.remove());
@@ -690,7 +561,7 @@
 
       const wordsEl = document.createElement("div");
       wordsEl.className = "solved-group-words";
-      wordsEl.textContent = words.join(" • ");
+      wordsEl.textContent = words.join(" \u2022 ");
 
       block.appendChild(title);
       block.appendChild(wordsEl);
@@ -778,6 +649,7 @@
         showWrongOverlay();
 
         if (mistakes < MAX_MISTAKES) {
+          // hide dots from RIGHT to LEFT
           const indexToHide = dots.length - 1 - mistakes;
           dots[indexToHide].classList.add("used");
           mistakes++;
@@ -853,14 +725,10 @@
     }
 
     archiveBtn.addEventListener("click", () => {
+      // Navigate to archive "page"
       const p = new URLSearchParams(window.location.search);
-      if (archiveMode) {
-        p.delete("archive");
-        p.set("date", getTodayStr());
-      } else {
-        p.set("archive", "1");
-        p.delete("date");
-      }
+      p.set("archive", "1");
+      p.delete("date");
       window.location.search = p.toString();
     });
 
@@ -909,18 +777,19 @@
 
         const rows = lines.slice(1).map((line) => line.split(","));
 
+        // --- Build archive date list (used for archive "page") ---
         const uniqueDates = Array.from(
           new Set(
             rows
               .map((cols) => (cols[idxDate] || "").trim())
               .filter(Boolean)
           )
-        ).sort();
+        ).sort(); // ascending; flip if you want newest first
 
         buildArchiveList(uniqueDates);
 
         if (archiveMode) {
-          introScreen.style.display = "none";
+          // Archive-only view: hide game UI
           grid.style.display = "none";
           solvedContainer.style.display = "none";
           controlsRow.style.display = "none";
@@ -928,17 +797,15 @@
 
           archiveList.classList.add("active");
           showTopBanner("ARCHIVE");
-          archiveBtn.textContent = "GO BACK TO TODAY'S CONNECTIONS";
-
+          // Disable game buttons
           shuffleBtn.style.display = "none";
           deselectBtn.style.display = "none";
           submitBtn.style.display = "none";
           return;
         }
 
+        // --- Normal puzzle view ---
         const dateStr = getTargetDateStr();
-        introDateEl.textContent = formatNiceDate(dateStr);
-
         const rowsForDate = rows.filter(
           (cols) => cols[idxDate] && cols[idxDate].trim() === dateStr
         );
