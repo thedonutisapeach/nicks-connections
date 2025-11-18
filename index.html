@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nick's Wintertime Connections</title>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --tile: #efefef;
+      --muted: #6b7280;
+      --accent: #111827;
+      --tile-height-desktop: 90px;
+      --tile-height-mobile: 72px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--accent);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+
+    .container {
+      width: 920px;
+      max-width: 96%;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+
+    /* Black block chunky title */
+    .title-main {
+      display: inline-block;
+      background: #000000;
+      color: #ffffff;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-weight: 900;
+      font-size: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    /* Top banner for messages like "BETTER LUCK TOMORROW" */
+    .top-banner {
+      font-weight: 800;
+      font-size: 16px;
+      color: #000000;
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    .board {
+      background: transparent;
+      padding: 0;
+      border-radius: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .tile {
+      background: var(--tile);
+      border-radius: 12px;
+      text-align: center;
+      user-select: none;
+      font-weight: 800;
+      font-size: 18px;
+      border: 1px solid #e6e6e6;
+      color: var(--accent);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s, color 0.15s;
+      height: var(--tile-height-desktop);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .tile.selected {
+      background: #383e42;
+      color: #ffffff;
+      transform: none;
+      box-shadow: none;
+      outline: none;
+    }
+
+    .tile.solved {
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .tile.shake {
+      animation: shake 0.45s;
+    }
+
+    @keyframes shake {
+      0%   { transform: translateX(0); }
+      25%  { transform: translateX(-6px); }
+      50%  { transform: translateX(6px); }
+      75%  { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 26px;
+      gap: 14px;
+    }
+
+    .mistakes {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 15px;
+      margin-right: 18px;
+    }
+
+    .dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #444444; /* start dark when lives available */
+      box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.06);
+    }
+
+    .dot.used {
+      visibility: hidden;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      background: #fff;
+      border: 1px solid #d1d5db;
+      padding: 10px 18px;
+      border-radius: 26px;
+      color: var(--accent);
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* Archive area (bottom button) */
+    .archive-wrapper {
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .archive-list {
+      margin-top: 16px;
+      display: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .archive-list.active {
+      display: flex;
+    }
+
+    .archive-date {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      cursor: pointer;
+      background: #f9fafb;
+      white-space: nowrap;
+    }
+
+    .archive-date:hover {
+      background: #e5e7eb;
+    }
+
+    /* Solved group block: one rectangle, same height as tiles */
+    .solved-group {
+      border-radius: 12px;
+      padding: 8px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: var(--tile-height-desktop);
+      margin-bottom: 10px;
+      color: #111827;
+      box-shadow: 0 2px 4px rgba(15,23,42,0.12);
+    }
+
+    .solved-group-title {
+      font-weight: 900;
+      font-size: 19px; /* 1 step bigger than 18px tile words */
+      margin-bottom: 2px;
+      text-align: center;
+    }
+
+    .solved-group-words {
+      font-weight: 400;  /* not bold */
+      font-size: 17px;
+      text-align: center;
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 700px) {
+      body {
+        padding: 16px;
+      }
+      .container {
+        width: 100%;
+        max-width: 100%;
+      }
+      .title-main {
+        font-size: 16px;
+        padding: 10px 12px;
+      }
+      .grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+      .tile {
+        font-size: 13px;
+        padding: 6px;
+        height: var(--tile-height-mobile);
+      }
+      .solved-group {
+        height: var(--tile-height-mobile);
+        padding: 6px 10px;
+      }
+      .solved-group-title {
+        font-size: 15px;
+      }
+      .solved-group-words {
+        font-size: 14px;
+      }
+      .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .mistakes {
+        justify-content: center;
+        margin-right: 0;
+      }
+      .buttons {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .buttons button {
+        flex: 1;
+      }
+    }
+
+    /* ===== WRONG-ANSWER OVERLAY ===== */
+
+    #wrongOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    #wrongOverlay.active {
+      display: flex;
+    }
+
+    #wrongMain,
+    #wrongText {
+      position: absolute;
+      opacity: 0;
+      transform: scale(0.1) rotate(0deg);
+      transform-origin: center center;
+      max-width: 70vw;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+
+    #wrongHint {
+      position: absolute;
+      bottom: 16px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #ef4444;
+    }
+
+    .animate-main {
+      animation: mainSpinZoom 0.9s forwards ease-out;
+    }
+
+    .animate-text {
+      animation: textSpinZoom 0.9s forwards ease-out;
+    }
+
+    @keyframes mainSpinZoom {
+      0%   { transform: scale(0.1) rotate(0deg);    opacity: 0; }
+      60%  { transform: scale(1.2) rotate(300deg);  opacity: 1; }
+      100% { transform: scale(1.2) rotate(360deg);  opacity: 1; } /* end upright */
+    }
+
+    @keyframes textSpinZoom {
+      0%   { transform: scale(0.1) rotate(0deg);     opacity: 0; }
+      60%  { transform: scale(1.2) rotate(-300deg);  opacity: 1; }
+      100% { transform: scale(1.2) rotate(-360deg);  opacity: 1; } /* end upright */
+    }
+
+    /* ===== SUCCESS OVERLAY ===== */
+
+    #resultOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    #resultOverlay.active {
+      display: flex;
+    }
+
+    #resultImg {
+      position: absolute;
+      opacity: 0;
+      transform: scale(0.1) rotate(0deg);
+      transform-origin: center center;
+      max-width: 70vw;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+
+    .animate-result {
+      animation: resultSpinZoom 0.9s forwards ease-out;
+    }
+
+    @keyframes resultSpinZoom {
+      0%   { transform: scale(0.1) rotate(0deg);    opacity: 0; }
+      60%  { transform: scale(1.2) rotate(300deg);  opacity: 1; }
+      100% { transform: scale(1.2) rotate(360deg);  opacity: 1; } /* end upright */
+    }
+
+    /* ===== INTRO SCREEN ===== */
+
+    #introScreen {
+      position: fixed;
+      inset: 0;
+      background: #c6b5ff;  /* purple-ish */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .intro-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+      color: #111827;
+      padding: 40px 24px;
+    }
+
+    .intro-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 22px;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    .intro-icon-inner {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg,#f97316,#ec4899);
+    }
+
+    .intro-title {
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .intro-subtitle {
+      font-size: 17px;
+      max-width: 290px;
+    }
+
+    .intro-play {
+      margin-top: 8px;
+      background: #000000;
+      color: #ffffff;
+      border-radius: 999px;
+      padding: 12px 42px;
+      border: none;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .intro-date {
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .intro-by {
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 700px) {
+      .intro-title {
+        font-size: 24px;
+      }
+      .intro-subtitle {
+        font-size: 15px;
+        max-width: 260px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Intro overlay -->
+  <div id="introScreen">
+    <div class="intro-card">
+      <div class="intro-icon">
+        <div class="intro-icon-inner"></div>
+      </div>
+      <div class="intro-title">Nick's Very Own Wintertime Connections</div>
+      <div class="intro-subtitle">
+        Group words that share a common thread (hopefully it makes sense!)
+      </div>
+      <button id="introPlay" class="intro-play">Play</button>
+      <div id="introDate" class="intro-date"></div>
+      <div class="intro-by">By Soco</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <h1 class="title-main">NICK'S VERY OWN WINTERTIME CONNECTIONS</h1>
+      <div id="topBanner" class="top-banner" style="display:none;"></div>
+    </header>
+
+    <main class="board">
+      <div id="solvedContainer"></div>
+
+      <div class="grid" id="grid"></div>
+
+      <div class="controls-row" id="controlsRow">
+        <div class="mistakes">
+          Mistakes Remaining:
+          <div class="dots" id="dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button id="shuffleBtn">Shuffle</button>
+          <button id="deselectBtn">Deselect All</button>
+          <button id="submitBtn">Submit</button>
+        </div>
+      </div>
+
+      <footer id="footerText">
+        You know what to do &lt;3. Also please don't judge me on my Connections making skills
+      </footer>
+
+      <div class="archive-wrapper">
+        <button id="archiveBtn">ARCHIVE</button>
+        <div id="archiveList" class="archive-list"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Wrong-answer overlay -->
+  <div id="wrongOverlay">
+    <img id="wrongMain" src="jazzwrong.png" alt="Wrong" />
+    <img id="wrongText" src="textwrongbit.png" alt="Wrong Text" />
+    <div id="wrongHint">click anywhere to continue</div>
+  </div>
+
+  <!-- Success overlay -->
+  <div id="resultOverlay">
+    <img id="resultImg" src="" alt="Result" />
+  </div>
+
+  <script>
+    const SHEET_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZ5r509S3GwGnxyKsz05syDdMFjTDuPAVBxOozcy1UlnUnHlpwuRDm4Np5W6vbFXkP70pYPGxQk2j6/pub?gid=0&single=true&output=csv";
+
+    let WORDS = [];
+    let GROUPS = [];
+
+    const grid            = document.getElementById("grid");
+    const solvedContainer = document.getElementById("solvedContainer");
+    const controlsRow     = document.getElementById("controlsRow");
+    const footerText      = document.getElementById("footerText");
+
+    const shuffleBtn      = document.getElementById("shuffleBtn");
+    const deselectBtn     = document.getElementById("deselectBtn");
+    const submitBtn       = document.getElementById("submitBtn");
+    const dots            = document.querySelectorAll("#dots .dot");
+    const topBanner       = document.getElementById("topBanner");
+
+    const wrongOverlay = document.getElementById("wrongOverlay");
+    const wrongMain    = document.getElementById("wrongMain");
+    const wrongText    = document.getElementById("wrongText");
+
+    const resultOverlay = document.getElementById("resultOverlay");
+    const resultImg     = document.getElementById("resultImg");
+
+    const archiveBtn    = document.getElementById("archiveBtn");
+    const archiveList   = document.getElementById("archiveList");
+
+    const introScreen   = document.getElementById("introScreen");
+    const introPlay     = document.getElementById("introPlay");
+    const introDateEl   = document.getElementById("introDate");
+
+    let selected = [];
+    let mistakes = 0;
+    const MAX_MISTAKES = 4;
+    let gameOver = false;
+
+    const params = new URLSearchParams(window.location.search);
+    const archiveMode = params.get("archive") === "1";
+
+    shuffleBtn.disabled  = true;
+    deselectBtn.disabled = true;
+    submitBtn.disabled   = true;
+
+    function getTodayStr() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function getTargetDateStr() {
+      if (archiveMode) return null;
+      const explicit = params.get("date");
+      if (explicit) return explicit;
+      return getTodayStr();
+    }
+
+    function showTopBanner(msg) {
+      topBanner.textContent = msg;
+      topBanner.style.display = "block";
+      topBanner.style.color = "#000000";
+    }
+
+    function formatNiceDate(dateStr) {
+      const d = new Date(dateStr);
+      if (!isNaN(d)) {
+        return d.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric"
+        });
+      }
+      return dateStr;
+    }
+
+    introPlay.addEventListener("click", () => {
+      introScreen.style.display = "none";
+    });
+
+    function createTile(text) {
+      const el = document.createElement("div");
+      el.className = "tile";
+      el.tabIndex = 0;
+      el.textContent = text;
+      el.dataset.word = text.toLowerCase();
+
+      el.addEventListener("click", () => {
+        if (gameOver || archiveMode) return;
+        toggleSelect(el);
+      });
+      el.addEventListener("keydown", (e) => {
+        if (gameOver || archiveMode) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleSelect(el);
+        }
+      });
+
+      return el;
+    }
+
+    function populate() {
+      grid.innerHTML = "";
+      const shuffled = [...WORDS];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      shuffled.forEach((w) => grid.appendChild(createTile(w)));
+    }
+
+    function toggleSelect(tile) {
+      if (tile.classList.contains("solved")) return;
+
+      if (tile.classList.contains("selected")) {
+        tile.classList.remove("selected");
+        selected = selected.filter((t) => t !== tile);
+      } else {
+        if (selected.length >= 4) return;
+        tile.classList.add("selected");
+        selected.push(tile);
+      }
+      updateButtons();
+    }
+
+    function updateButtons() {
+      submitBtn.disabled = gameOver || archiveMode || selected.length !== 4;
+    }
+
+    // Single-rectangle solved grouping
+    function createSolvedGroupBlock(group, tiles) {
+      const words = tiles.map((t) => t.textContent);
+      tiles.forEach((t) => t.remove());
+
+      const block = document.createElement("div");
+      block.className = "solved-group";
+      block.style.background = group.color;
+
+      const title = document.createElement("div");
+      title.className = "solved-group-title";
+      title.textContent = group.name.toUpperCase();
+
+      const wordsEl = document.createElement("div");
+      wordsEl.className = "solved-group-words";
+      wordsEl.textContent = words.join(" • ");
+
+      block.appendChild(title);
+      block.appendChild(wordsEl);
+      solvedContainer.appendChild(block);
+    }
+
+    function shuffleGrid() {
+      const tiles = Array.from(grid.children);
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        grid.appendChild(tiles[j]);
+      }
+    }
+
+    shuffleBtn.addEventListener("click", () => {
+      if (gameOver || archiveMode) return;
+      shuffleGrid();
+      selected.forEach((t) => t.classList.remove("selected"));
+      selected = [];
+      updateButtons();
+    });
+
+    deselectBtn.addEventListener("click", () => {
+      if (gameOver || archiveMode) return;
+      selected.forEach((t) => t.classList.remove("selected"));
+      selected = [];
+      updateButtons();
+    });
+
+    function showWrongOverlay() {
+      if (!wrongOverlay || !wrongMain || !wrongText) return;
+      wrongOverlay.classList.add("active");
+      wrongMain.classList.remove("animate-main");
+      wrongText.classList.remove("animate-text");
+      void wrongMain.offsetWidth;
+      void wrongText.offsetWidth;
+      wrongMain.classList.add("animate-main");
+      wrongText.classList.add("animate-text");
+    }
+
+    wrongOverlay.addEventListener("click", () => {
+      wrongOverlay.classList.remove("active");
+      wrongMain.classList.remove("animate-main");
+      wrongText.classList.remove("animate-text");
+    });
+
+    function showResultOverlay(src) {
+      if (!resultOverlay || !resultImg) return;
+      resultImg.src = src;
+      resultOverlay.classList.add("active");
+      resultImg.classList.remove("animate-result");
+      void resultImg.offsetWidth;
+      resultImg.classList.add("animate-result");
+    }
+
+    resultOverlay.addEventListener("click", () => {
+      resultOverlay.classList.remove("active");
+      resultImg.classList.remove("animate-result");
+    });
+
+    submitBtn.addEventListener("click", () => {
+      if (gameOver || archiveMode) return;
+      if (selected.length !== 4) return;
+
+      const chosen = selected.map((t) => t.dataset.word);
+
+      const found = GROUPS.find(
+        (g) =>
+          chosen.length === g.set.length &&
+          chosen.every((w) => g.set.includes(w))
+      );
+
+      if (found) {
+        createSolvedGroupBlock(found, [...selected]);
+        selected = [];
+        updateButtons();
+      } else {
+        selected.forEach((t) => {
+          t.classList.add("shake");
+          setTimeout(() => t.classList.remove("shake"), 450);
+          t.classList.remove("selected");
+        });
+        selected = [];
+
+        showWrongOverlay();
+
+        if (mistakes < MAX_MISTAKES) {
+          const indexToHide = dots.length - 1 - mistakes;
+          dots[indexToHide].classList.add("used");
+          mistakes++;
+        }
+
+        if (mistakes >= MAX_MISTAKES) {
+          handleGameOver();
+        }
+
+        updateButtons();
+      }
+
+      checkWinCondition();
+    });
+
+    function handleGameOver() {
+      gameOver = true;
+      submitBtn.disabled = true;
+      shuffleBtn.disabled = true;
+      deselectBtn.disabled = true;
+      revealAllGroups();
+      showTopBanner("BETTER LUCK TOMORROW");
+    }
+
+    function revealAllGroups() {
+      const remainingTiles = Array.from(document.querySelectorAll(".tile"))
+        .filter((t) => !t.classList.contains("solved"));
+      if (!remainingTiles.length) return;
+
+      GROUPS.forEach((g) => {
+        const groupTiles = remainingTiles.filter((t) =>
+          g.set.includes(t.dataset.word)
+        );
+        if (groupTiles.length === 4) {
+          createSolvedGroupBlock(g, groupTiles);
+        }
+      });
+    }
+
+    function checkWinCondition() {
+      const remaining = Array.from(document.querySelectorAll(".tile")).filter(
+        (t) => !t.classList.contains("solved")
+      ).length;
+
+      if (remaining === 0 && !gameOver) {
+        if (mistakes === 0) {
+          showResultOverlay("jazzperfect.png");
+        } else if (mistakes < MAX_MISTAKES) {
+          showResultOverlay("jazzgoodjob.png");
+        }
+        showMessage("You found all groups!");
+        gameOver = true;
+        submitBtn.disabled = true;
+        shuffleBtn.disabled = true;
+        deselectBtn.disabled = true;
+      }
+    }
+
+    function showMessage(msg) {
+      let el = document.getElementById("msg");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "msg";
+        el.style.marginTop = "14px";
+        el.style.textAlign = "center";
+        el.style.color = "var(--muted)";
+        document.querySelector(".board").appendChild(el);
+      }
+      el.textContent = msg;
+      setTimeout(() => {
+        if (el) el.textContent = "";
+      }, 3000);
+    }
+
+    archiveBtn.addEventListener("click", () => {
+      const p = new URLSearchParams(window.location.search);
+      if (archiveMode) {
+        p.delete("archive");
+        p.set("date", getTodayStr());
+      } else {
+        p.set("archive", "1");
+        p.delete("date");
+      }
+      window.location.search = p.toString();
+    });
+
+    function buildArchiveList(dates) {
+      archiveList.innerHTML = "";
+      dates.forEach((d) => {
+        const item = document.createElement("div");
+        item.className = "archive-date";
+        item.textContent = d;
+        item.addEventListener("click", () => {
+          const p = new URLSearchParams();
+          p.set("date", d);
+          window.location.search = p.toString();
+        });
+        archiveList.appendChild(item);
+      });
+    }
+
+    async function init() {
+      try {
+        const res = await fetch(SHEET_CSV_URL);
+        const text = await res.text();
+
+        const lines = text.trim().split(/\r?\n/);
+        if (lines.length <= 1) {
+          showMessage("No puzzle data found.");
+          return;
+        }
+
+        const header = lines[0].split(",").map((h) => h.trim().toLowerCase());
+        const idxDate  = header.indexOf("date");
+        const idxGroup = header.indexOf("group");
+        const idxColor = header.indexOf("color");
+        const idxW1    = header.indexOf("word1");
+        const idxW2    = header.indexOf("word2");
+        const idxW3    = header.indexOf("word3");
+        const idxW4    = header.indexOf("word4");
+
+        if (
+          idxDate === -1 || idxGroup === -1 || idxColor === -1 ||
+          idxW1 === -1 || idxW2 === -1 || idxW3 === -1 || idxW4 === -1
+        ) {
+          showMessage("Sheet headers must be: date, group, color, word1..word4");
+          return;
+        }
+
+        const rows = lines.slice(1).map((line) => line.split(","));
+
+        const uniqueDates = Array.from(
+          new Set(
+            rows
+              .map((cols) => (cols[idxDate] || "").trim())
+              .filter(Boolean)
+          )
+        ).sort();
+
+        buildArchiveList(uniqueDates);
+
+        if (archiveMode) {
+          introScreen.style.display = "none";
+          grid.style.display = "none";
+          solvedContainer.style.display = "none";
+          controlsRow.style.display = "none";
+          footerText.style.display = "none";
+
+          archiveList.classList.add("active");
+          showTopBanner("ARCHIVE");
+          archiveBtn.textContent = "GO BACK TO TODAY'S CONNECTIONS";
+
+          shuffleBtn.style.display = "none";
+          deselectBtn.style.display = "none";
+          submitBtn.style.display = "none";
+          return;
+        }
+
+        const dateStr = getTargetDateStr();
+        introDateEl.textContent = formatNiceDate(dateStr);
+
+        const rowsForDate = rows.filter(
+          (cols) => cols[idxDate] && cols[idxDate].trim() === dateStr
+        );
+
+        if (rowsForDate.length === 0) {
+          showMessage("No puzzle for " + dateStr);
+          shuffleBtn.disabled  = true;
+          deselectBtn.disabled = true;
+          submitBtn.disabled   = true;
+          return;
+        }
+
+        GROUPS = [];
+        WORDS = [];
+
+        rowsForDate.forEach((cols) => {
+          const groupName = (cols[idxGroup] || "").trim();
+          const color     = (cols[idxColor] || "#fde68a").trim();
+          const w1        = (cols[idxW1] || "").trim();
+          const w2        = (cols[idxW2] || "").trim();
+          const w3        = (cols[idxW3] || "").trim();
+          const w4        = (cols[idxW4] || "").trim();
+
+          if (groupName && w1 && w2 && w3 && w4) {
+            GROUPS.push({
+              name: groupName,
+              color: color,
+              set: [w1, w2, w3, w4].map((w) => w.toLowerCase()),
+            });
+            WORDS.push(w1, w2, w3, w4);
+          }
+        });
+
+        populate();
+        shuffleBtn.disabled  = false;
+        deselectBtn.disabled = false;
+        submitBtn.disabled   = false;
+
+      } catch (err) {
+        console.error(err);
+        showMessage("Error loading puzzle.");
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
