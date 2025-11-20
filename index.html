@@ -44,7 +44,6 @@
       margin-bottom: 18px;
     }
 
-    /* Black block chunky title */
     .title-main {
       display: inline-block;
       background: #000000;
@@ -58,7 +57,6 @@
       text-align: center;
     }
 
-    /* Top banner for messages like "BETTER LUCK TOMORROW" */
     .top-banner {
       font-weight: 800;
       font-size: 16px;
@@ -150,7 +148,7 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: #444444; /* start dark when lives available */
+      background: #444444;
       box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.06);
     }
 
@@ -186,7 +184,6 @@
       text-align: center;
     }
 
-    /* Archive area (bottom button) */
     .archive-wrapper {
       margin-top: 18px;
       text-align: center;
@@ -218,7 +215,6 @@
       background: #e5e7eb;
     }
 
-    /* Solved group block: one rectangle, same height as tiles */
     .solved-group {
       border-radius: 12px;
       padding: 8px 14px;
@@ -234,18 +230,17 @@
 
     .solved-group-title {
       font-weight: 900;
-      font-size: 19px; /* 1 step bigger than 18px tile words */
+      font-size: 19px;
       margin-bottom: 2px;
       text-align: center;
     }
 
     .solved-group-words {
-      font-weight: 400;  /* not bold */
+      font-weight: 400;
       font-size: 17px;
       text-align: center;
     }
 
-    /* Mobile tweaks */
     @media (max-width: 700px) {
       body {
         padding: 16px;
@@ -296,7 +291,7 @@
       }
     }
 
-    /* ===== WRONG-ANSWER OVERLAY ===== */
+    /* WRONG overlay */
 
     #wrongOverlay {
       position: fixed;
@@ -327,13 +322,21 @@
 
     #wrongHint {
       position: absolute;
-      bottom: 16px;
+      bottom: 15%;
       left: 0;
       right: 0;
       text-align: center;
       font-size: 12px;
       font-weight: 600;
       color: #ef4444;
+      text-shadow: 0 0 6px rgba(0,0,0,0.8);
+      animation: pulseHint 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulseHint {
+      0%   { transform: scale(1);   opacity: 0.8; }
+      50%  { transform: scale(1.08); opacity: 1;   }
+      100% { transform: scale(1);   opacity: 0.8; }
     }
 
     .animate-main {
@@ -347,16 +350,16 @@
     @keyframes mainSpinZoom {
       0%   { transform: scale(0.1) rotate(0deg);    opacity: 0; }
       60%  { transform: scale(1.2) rotate(300deg);  opacity: 1; }
-      100% { transform: scale(1.2) rotate(360deg);  opacity: 1; } /* end upright */
+      100% { transform: scale(1.2) rotate(360deg);  opacity: 1; }
     }
 
     @keyframes textSpinZoom {
       0%   { transform: scale(0.1) rotate(0deg);     opacity: 0; }
       60%  { transform: scale(1.2) rotate(-300deg);  opacity: 1; }
-      100% { transform: scale(1.2) rotate(-360deg);  opacity: 1; } /* end upright */
+      100% { transform: scale(1.2) rotate(-360deg);  opacity: 1; }
     }
 
-    /* ===== SUCCESS OVERLAY ===== */
+    /* SUCCESS overlay */
 
     #resultOverlay {
       position: fixed;
@@ -391,15 +394,15 @@
     @keyframes resultSpinZoom {
       0%   { transform: scale(0.1) rotate(0deg);    opacity: 0; }
       60%  { transform: scale(1.2) rotate(300deg);  opacity: 1; }
-      100% { transform: scale(1.2) rotate(360deg);  opacity: 1; } /* end upright */
+      100% { transform: scale(1.2) rotate(360deg);  opacity: 1; }
     }
 
-    /* ===== INTRO SCREEN ===== */
+    /* INTRO SCREEN */
 
     #introScreen {
       position: fixed;
       inset: 0;
-      background: #c6b5ff;  /* purple-ish */
+      background: #c6b5ff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -420,18 +423,19 @@
       width: 80px;
       height: 80px;
       border-radius: 22px;
-      background: #000000;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: transparent;
       margin-bottom: 4px;
     }
 
-    .intro-icon-inner {
-      width: 56px;
-      height: 56px;
-      border-radius: 14px;
-      background: linear-gradient(135deg,#f97316,#ec4899);
+    .intro-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .intro-title {
@@ -484,7 +488,8 @@
   <div id="introScreen">
     <div class="intro-card">
       <div class="intro-icon">
-        <div class="intro-icon-inner"></div>
+        <!-- Your logo here -->
+        <img src="logointro.png" alt="Connections logo" class="intro-logo" />
       </div>
       <div class="intro-title">Nick's Very Own Wintertime Connections</div>
       <div class="intro-subtitle">
@@ -675,7 +680,6 @@
       submitBtn.disabled = gameOver || archiveMode || selected.length !== 4;
     }
 
-    // Single-rectangle solved grouping
     function createSolvedGroupBlock(group, tiles) {
       const words = tiles.map((t) => t.textContent);
       tiles.forEach((t) => t.remove());
