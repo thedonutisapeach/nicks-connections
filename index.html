@@ -601,12 +601,13 @@
     function getTodayStr() {
       return new Date().toISOString().slice(0, 10);
     }
-
     function getTargetDateStr() {
-      if (archiveMode) return null;
-      const explicit = params.get("date");
-      if (explicit) return explicit;
-      return getTodayStr();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("date")) return params.get("date");
+
+  const today = new Date();
+  today.setDate(today.getDate() + 1); // quick fix: add one day
+  return today.toISOString().slice(0, 10);
     }
 
     function showTopBanner(msg) {
